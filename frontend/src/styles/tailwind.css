@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: #050608;
+  color: #f7f7f7;
+  font-family: 'Inter', 'Poppins', sans-serif;
+}
+
+input, select, textarea, button {
+  font: inherit;
+}
