@@ -11,14 +11,18 @@ const PLANS = {
   'Elite':          { days: 365, price: 22500 },
 };
 const membershipPlans = Object.keys(PLANS);
-const ptPackages = ['No PT Package', 'Bronze PT Pack', 'Silver PT Pack', 'Gold PT Pack'];
+const ptPackages = ['No PT Package', '4 Sessions - 1500 EGP', '8 Sessions - 2000 EGP', '12 Sessions - 3000 EGP', '16 Sessions - 3400 EGP', '20 Sessions - 4500 EGP', '24 Sessions - 5200 EGP'];
 const paymentMethods = ['Instapay', 'Vodafone Cash', 'Visa', 'Cash'];
 const ptPackageMap = {
   'No PT Package': null,
-  'Bronze PT Pack': 1,
-  'Silver PT Pack': 2,
-  'Gold PT Pack': 3,
+  '4 Sessions - 1500 EGP': 4,
+  '8 Sessions - 2000 EGP': 8,
+  '12 Sessions - 3000 EGP': 12,
+  '16 Sessions - 3400 EGP': 16,
+  '20 Sessions - 4500 EGP': 20,
+  '24 Sessions - 5200 EGP': 24,
 };
+const ptSessionPrices = { 4: 1500, 8: 2000, 12: 3000, 16: 3400, 20: 4500, 24: 5200 };
 
 export default function SalesRenewalForm() {
   const navigate = useNavigate();
@@ -42,17 +46,19 @@ export default function SalesRenewalForm() {
   const [contractCode, setContractCode] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountInfo, setDiscountInfo] = useState(null);
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState('');
 
-  async function handleSearch() {
-    if (!searchPhone.trim()) {
-      setSearchError('Enter a phone number to search.');
-      return;
-    }
+  async function handleSearch(q) {
+    setSearchPhone(q);
+    if (q.length < 2) { setMembers([]); setSearchError(''); return; }
     setSearchError('');
     setSearching(true);
     setSelectedMember(null);
     try {
-      const res = await api.get('/sales/members/search', { params: { phone: searchPhone } });
+      const res = await api.get('/sales/members/search', { params: { phone: q } });
       setMembers(res.data.members || []);
       if (!res.data.members?.length) {
         setSearchError('No members found with that phone number.');
@@ -102,6 +108,27 @@ export default function SalesRenewalForm() {
     });
   }
 
+  const originalAmount = form.membership_plan ? PLANS[form.membership_plan]?.price : 0;
+  const discountedAmount = discountInfo
+    ? Math.round(originalAmount - (originalAmount * discountInfo.percentage) / 100)
+    : originalAmount;
+
+  async function applyDiscountCode() {
+    if (!discountCode.trim()) { setDiscountError('Enter a discount code.'); return; }
+    setDiscountLoading(true);
+    setDiscountError('');
+    setDiscountInfo(null);
+    try {
+      const res = await api.get('/sales/discount-codes/validate', { params: { code: discountCode.trim() } });
+      setDiscountInfo(res.data.discount_code);
+      setDiscountError('');
+    } catch {
+      setDiscountError('Invalid or inactive discount code.');
+      setDiscountInfo(null);
+    }
+    setDiscountLoading(false);
+  }
+
   function goBack() {
     if (step === 2) {
       setSelectedMember(null);
@@ -122,6 +149,7 @@ export default function SalesRenewalForm() {
     setError('');
     setIsSubmitting(true);
 
+    const finalAmount = discountInfo ? discountedAmount : Number(form.amount);
     const formData = new FormData();
     formData.append('member_id', String(selectedMember.id));
     formData.append('member_name', selectedMember.full_name);
@@ -133,13 +161,16 @@ export default function SalesRenewalForm() {
     formData.append('end_date', form.end_date);
     formData.append('pt_package_id', ptPackageMap[form.pt_package] ?? '');
     formData.append('payment_method', form.payment_method);
-    formData.append('amount', form.amount);
+    formData.append('amount', finalAmount);
     formData.append('renewal_type', 'renewal');
     if (selectedMember.contracts?.[0]?.id) {
       formData.append('previous_contract_id', String(selectedMember.contracts[0].id));
     }
     if (form.receipt) {
       formData.append('receipt', form.receipt);
+    }
+    if (discountInfo) {
+      formData.append('discount_code_id', discountInfo.id);
     }
 
     try {
@@ -177,6 +208,9 @@ export default function SalesRenewalForm() {
     setQrToken('');
     setError('');
     setSubmitted(false);
+    setDiscountCode('');
+    setDiscountInfo(null);
+    setDiscountError('');
     setForm({
       membership_plan: '',
       start_date: '',
@@ -235,23 +269,13 @@ export default function SalesRenewalForm() {
             {step === 1 && (
               <div className="rounded-[32px] border border-white/10 bg-[#061d3c]/80 p-8 shadow-glow">
                 <p className="text-sm uppercase tracking-[0.35em] text-white/50">Search by phone number</p>
-                <div className="mt-4 flex gap-3">
-                  <input
-                    type="text"
-                    value={searchPhone}
-                    onChange={(e) => setSearchPhone(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="flex-1 rounded-[28px] border border-white/10 bg-[#0b1933] px-5 py-4 text-white outline-none transition focus:border-vital-gold/50"
-                    placeholder="Enter phone number (e.g. 01...)"
-                  />
-                  <button
-                    onClick={handleSearch}
-                    disabled={searching}
-                    className="rounded-full bg-vital-gold px-8 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:shadow-glow disabled:opacity-70"
-                  >
-                    {searching ? 'Searching...' : 'Search'}
-                  </button>
-                </div>
+                <input
+                  type="text"
+                  value={searchPhone}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="mt-4 w-full rounded-[28px] border border-white/10 bg-[#0b1933] px-5 py-4 text-white outline-none transition focus:border-vital-gold/50"
+                  placeholder="Enter phone number (e.g. 01...)"
+                />
                 {searchError && <p className="mt-4 rounded-3xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{searchError}</p>}
 
                 {members.length > 0 && (
@@ -337,7 +361,30 @@ export default function SalesRenewalForm() {
                   <div className="mt-4 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
                     <div className="space-y-4">
                       <p className="text-sm text-white/70">Amount Due</p>
-                      <p className="text-5xl font-black text-[#f4de52]">{Number(form.amount).toLocaleString()} EGP</p>
+                      {discountInfo ? (
+                        <div>
+                          <p className="text-lg text-white/60 line-through">{Number(originalAmount).toLocaleString()} EGP</p>
+                          <p className="text-5xl font-black text-[#f4de52]">{Number(discountedAmount).toLocaleString()} EGP</p>
+                          <p className="mt-1 text-sm text-emerald-400">{discountInfo.percentage}% off · {discountInfo.name}</p>
+                        </div>
+                      ) : (
+                        <p className="text-5xl font-black text-[#f4de52]">{Number(form.amount).toLocaleString()} EGP</p>
+                      )}
+                      <div className="mt-4 rounded-3xl border border-dashed border-white/10 bg-[#0b2346] p-4">
+                        <p className="text-xs uppercase tracking-[0.35em] text-white/50">Discount Code</p>
+                        <div className="mt-2 flex gap-2">
+                          <input type="text" value={discountCode} onChange={(e) => setDiscountCode(e.target.value)} placeholder="Enter code" className="flex-1 rounded-full border border-white/10 bg-[#0b1933] px-4 py-3 text-sm text-white outline-none focus:border-vital-gold/50" />
+                          <button type="button" onClick={applyDiscountCode} disabled={discountLoading} className="shrink-0 rounded-full bg-vital-gold px-5 py-3 text-sm font-semibold text-black transition hover:shadow-glow disabled:opacity-70">
+                            {discountLoading ? '...' : discountInfo ? 'Applied' : 'Apply'}
+                          </button>
+                        </div>
+                        {discountError && <p className="mt-2 text-sm text-red-400">{discountError}</p>}
+                        {discountInfo && (
+                          <button type="button" onClick={() => { setDiscountInfo(null); setDiscountCode(''); setDiscountError(''); }} className="mt-2 text-xs text-vital-gold underline">
+                            Remove discount
+                          </button>
+                        )}
+                      </div>
                       <div className="mt-4 grid gap-3 sm:grid-cols-3">
                         {paymentMethods.map((method) => (
                           <button

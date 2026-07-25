@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api';
+import MultiContractFlow from './MultiContractFlow';
 
 const QR_API = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=';
 
@@ -11,17 +12,22 @@ const PLANS = {
   'Elite':          { days: 365, price: 22500 },
 };
 const membershipPlans = Object.keys(PLANS);
-const ptPackages = ['No PT Package', 'Bronze PT Pack', 'Silver PT Pack', 'Gold PT Pack'];
+const ptPackages = ['No PT Package', '4 Sessions - 1500 EGP', '8 Sessions - 2000 EGP', '12 Sessions - 3000 EGP', '16 Sessions - 3400 EGP', '20 Sessions - 4500 EGP', '24 Sessions - 5200 EGP'];
 const paymentMethods = ['Instapay', 'Vodafone Cash', 'Visa', 'Cash'];
 const ptPackageMap = {
   'No PT Package': null,
-  'Bronze PT Pack': 1,
-  'Silver PT Pack': 2,
-  'Gold PT Pack': 3,
+  '4 Sessions - 1500 EGP': 4,
+  '8 Sessions - 2000 EGP': 8,
+  '12 Sessions - 3000 EGP': 12,
+  '16 Sessions - 3400 EGP': 16,
+  '20 Sessions - 4500 EGP': 20,
+  '24 Sessions - 5200 EGP': 24,
 };
+const ptSessionPrices = { 4: 1500, 8: 2000, 12: 3000, 16: 3400, 20: 4500, 24: 5200 };
 
 export default function NewContractForm() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState('single');
   const [step, setStep] = useState(1);
   const [contractCode, setContractCode] = useState('');
   const [form, setForm] = useState({
@@ -42,6 +48,10 @@ export default function NewContractForm() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountInfo, setDiscountInfo] = useState(null);
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState('');
 
   function handleInputChange(field, value) {
     setForm((prev) => {
@@ -64,6 +74,30 @@ export default function NewContractForm() {
 
       return next;
     });
+  }
+
+  const originalAmount = form.membership_plan ? PLANS[form.membership_plan]?.price : 0;
+  const discountedAmount = discountInfo
+    ? Math.round(originalAmount - (originalAmount * discountInfo.percentage) / 100)
+    : originalAmount;
+
+  async function applyDiscountCode() {
+    if (!discountCode.trim()) {
+      setDiscountError('Enter a discount code.');
+      return;
+    }
+    setDiscountLoading(true);
+    setDiscountError('');
+    setDiscountInfo(null);
+    try {
+      const res = await api.get('/sales/discount-codes/validate', { params: { code: discountCode.trim() } });
+      setDiscountInfo(res.data.discount_code);
+      setDiscountError('');
+    } catch {
+      setDiscountError('Invalid or inactive discount code.');
+      setDiscountInfo(null);
+    }
+    setDiscountLoading(false);
   }
 
   function nextStep() {
@@ -94,6 +128,7 @@ export default function NewContractForm() {
       setError('');
       setIsSubmitting(true);
 
+      const finalAmount = discountInfo ? discountedAmount : Number(form.amount);
       const formData = new FormData();
       formData.append('member_name', form.full_name);
       formData.append('member_email', form.email);
@@ -104,13 +139,17 @@ export default function NewContractForm() {
       formData.append('end_date', form.end_date);
       formData.append('pt_package_id', ptPackageMap[form.pt_package] ?? '');
       formData.append('payment_method', form.payment_method);
-      formData.append('amount', form.amount);
+      formData.append('amount', finalAmount);
       if (form.receipt) {
         formData.append('receipt', form.receipt);
       }
       if (form.idVerification) {
         formData.append('id_verification', form.idVerification);
       }
+      if (discountInfo) {
+        formData.append('discount_code_id', discountInfo.id);
+      }
+      formData.append('contract_type', 'regular');
 
       api.post('/sales/contracts', formData)
         .then((response) => {
@@ -167,9 +206,14 @@ export default function NewContractForm() {
     setContractCode('');
     setQrToken('');
     setError('');
+    setDiscountCode('');
+    setDiscountInfo(null);
+    setDiscountError('');
   }
 
-  return (
+  return mode !== 'single' ? (
+    <MultiContractFlow type={mode} onBack={() => setMode('single')} />
+  ) : (
     <div className="min-h-screen bg-[#021027] text-white">
       <div className="grid min-h-screen grid-cols-1 xl:grid-cols-[260px_1fr]">
         <aside className="border-r border-white/10 bg-[#061333] px-6 py-8">
@@ -224,6 +268,25 @@ export default function NewContractForm() {
             <div className="space-y-3">
               <p className="text-sm uppercase tracking-[0.35em] text-[#f4de52]/80">New Contract</p>
               <h1 className="text-5xl font-black text-white">Create membership and upload payment proof.</h1>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => setMode('referral')}
+                className="flex-1 rounded-[32px] border border-white/10 bg-[#061d3c]/80 p-6 shadow-glow text-left transition hover:border-vital-gold/50"
+              >
+                <p className="text-2xl font-bold text-white">👥 Referral</p>
+                <p className="mt-2 text-xs text-white/60">Create contracts for client + friends with referral plan.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('family')}
+                className="flex-1 rounded-[32px] border border-white/10 bg-[#061d3c]/80 p-6 shadow-glow text-left transition hover:border-vital-gold/50"
+              >
+                <p className="text-2xl font-bold text-white">👨‍👩‍👧‍👦 Family</p>
+                <p className="mt-2 text-xs text-white/60">Create contracts for client + family members.</p>
+              </button>
             </div>
 
             <div className="rounded-[32px] border border-white/10 bg-[#061d3c]/80 p-6 shadow-glow">
@@ -335,7 +398,30 @@ export default function NewContractForm() {
                   <div>
                     <p className="text-sm uppercase tracking-[0.35em] text-white/50">Total Amount Due</p>
                     <div className="mt-4 rounded-3xl border border-white/10 bg-[#0b2346] p-6">
-                      <p className="text-5xl font-black text-[#f4de52]">{Number(form.amount).toLocaleString()} EGP</p>
+                      {discountInfo ? (
+                        <div>
+                          <p className="text-lg text-white/60 line-through">{Number(originalAmount).toLocaleString()} EGP</p>
+                          <p className="mt-1 text-5xl font-black text-[#f4de52]">{Number(discountedAmount).toLocaleString()} EGP</p>
+                          <p className="mt-2 text-sm text-emerald-400">{discountInfo.percentage}% off · {discountInfo.name}</p>
+                        </div>
+                      ) : (
+                        <p className="text-5xl font-black text-[#f4de52]">{Number(form.amount).toLocaleString()} EGP</p>
+                      )}
+                    </div>
+                    <div className="mt-4 rounded-3xl border border-dashed border-white/10 bg-[#0b2346] p-4">
+                      <p className="text-xs uppercase tracking-[0.35em] text-white/50">Discount Code</p>
+                      <div className="mt-2 flex gap-2">
+                        <input type="text" value={discountCode} onChange={(e) => setDiscountCode(e.target.value)} placeholder="Enter code" className="flex-1 rounded-full border border-white/10 bg-[#0b1933] px-4 py-3 text-sm text-white outline-none focus:border-vital-gold/50" />
+                        <button type="button" onClick={applyDiscountCode} disabled={discountLoading} className="shrink-0 rounded-full bg-vital-gold px-5 py-3 text-sm font-semibold text-black transition hover:shadow-glow disabled:opacity-70">
+                          {discountLoading ? '...' : discountInfo ? 'Applied' : 'Apply'}
+                        </button>
+                      </div>
+                      {discountError && <p className="mt-2 text-sm text-red-400">{discountError}</p>}
+                      {discountInfo && (
+                        <button type="button" onClick={() => { setDiscountInfo(null); setDiscountCode(''); setDiscountError(''); }} className="mt-2 text-xs text-vital-gold underline">
+                          Remove discount
+                        </button>
+                      )}
                     </div>
                     <div className="mt-6 grid gap-3 sm:grid-cols-3">
                       {paymentMethods.map((method) => (

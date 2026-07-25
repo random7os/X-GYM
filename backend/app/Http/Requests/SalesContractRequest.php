@@ -29,6 +29,9 @@ class SalesContractRequest extends FormRequest
             'previous_contract_id' => 'nullable|integer|exists:contracts,id',
             'receipt' => 'required_if:payment_method,Instapay|required_if:payment_method,Vodafone Cash|required_if:payment_method,Visa|image|mimes:jpg,jpeg,png|max:5120',
             'id_verification' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+            'contract_type' => 'nullable|in:regular,referral,family',
+            'contract_code' => 'nullable|string|max:20',
+            'discount_code_id' => 'nullable|integer|exists:discount_codes,id',
         ];
     }
 }

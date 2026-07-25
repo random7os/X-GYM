@@ -133,7 +133,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="mt-3 flex items-center justify-between text-sm text-white/60">
                   <p>{contract.member.full_name}</p>
-                  <p>₦{contract.amount.toLocaleString()}</p>
+                  <div className="text-right">
+                    <p>₦{contract.amount.toLocaleString()}</p>
+                    {contract.discount_name && <p className="text-[10px] uppercase tracking-[0.15em] text-emerald-400">{contract.discount_name}</p>}
+                  </div>
                 </div>
               </div>
             ))}

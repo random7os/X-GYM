@@ -16,7 +16,7 @@ class ContractApprovalController extends Controller
 {
     public function pending()
     {
-        $contracts = Contract::with(['member', 'salesAgent', 'payments'])
+        $contracts = Contract::with(['member', 'salesAgent', 'payments', 'discountCode'])
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -26,7 +26,7 @@ class ContractApprovalController extends Controller
 
     public function show(Contract $contract)
     {
-        return response()->json($contract->load(['member', 'salesAgent', 'payments', 'ptSessions']));
+        return response()->json($contract->load(['member', 'salesAgent', 'payments', 'ptSessions', 'discountCode']));
     }
 
     public function approve(Contract $contract)
@@ -72,7 +72,7 @@ class ContractApprovalController extends Controller
 
     public function filterPayments(Request $request)
     {
-        $query = Contract::with(['member', 'salesAgent', 'payments'])
+        $query = Contract::with(['member', 'salesAgent', 'payments', 'discountCode'])
             ->when($request->from, fn ($q) => $q->whereDate('created_at', '>=', $request->from))
             ->when($request->to, fn ($q) => $q->whereDate('created_at', '<=', $request->to))
             ->when($request->agent_id, fn ($q) => $q->where('sales_agent_id', $request->agent_id))

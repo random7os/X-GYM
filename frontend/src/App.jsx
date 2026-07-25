@@ -12,6 +12,7 @@ import AdminLayout from './pages/Admin/AdminLayout';
 import AdminAgents from './pages/Admin/AdminAgents';
 import AdminContractsExport from './pages/Admin/AdminContractsExport';
 import AdminContractDetail from './pages/Admin/AdminContractDetail';
+import AdminDiscountCodes from './pages/Admin/AdminDiscountCodes';
 import ProfilePage from './pages/ProfilePage';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 
@@ -66,6 +67,7 @@ export default function App() {
             <Route path="/admin/contracts" element={<AdminContractsExport />} />
             <Route path="/admin/contracts/:contractId" element={<AdminContractDetail />} />
             <Route path="/admin/agents" element={<AdminAgents />} />
+            <Route path="/admin/discount-codes" element={<AdminDiscountCodes />} />
           </Route>
           <Route path="*" element={<Navigate to="/sales/login" replace />} />
         </Routes>

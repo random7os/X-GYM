@@ -21,11 +21,12 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-xl rounded-[32px] border border-white/10 bg-[#0c0d11]/90 p-10 shadow-glow backdrop-blur-xl">
-        <div className="mb-8 space-y-3 text-center">
-          <p className="text-sm uppercase tracking-[0.4em] text-vital-gold">X</p>
-          <h1 className="text-4xl font-black text-white">Admin Portal</h1>
+    <div className="flex min-h-screen items-center justify-center px-4 py-12" style={{ background: 'radial-gradient(ellipse at 50% 30%, #0f1219 0%, #05060f 70%)' }}>
+      <div className="w-full max-w-xl rounded-[32px] border border-white/10 bg-[#0c0d11]/95 p-12 shadow-glow backdrop-blur-xl">
+        <div className="mb-10 space-y-4 text-center">
+          <p className="text-lg font-light uppercase tracking-[0.6em] text-vital-gold">X</p>
+          <h1 className="text-5xl font-bold text-white tracking-tight">Admin Portal</h1>
+          <p className="text-sm text-white/50 tracking-wide">Sign in to manage contracts and agents</p>
         </div>
 
         <div className="mb-6 flex items-center justify-center gap-3">

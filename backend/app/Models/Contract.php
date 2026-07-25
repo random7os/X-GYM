@@ -27,6 +27,8 @@ class Contract extends Model
         'reviewed_at',
         'qr_code_token',
         'id_verification_path',
+        'discount_code_id',
+        'discount_name',
     ];
 
     public function member(): BelongsTo
@@ -47,5 +49,10 @@ class Contract extends Model
     public function ptSessions(): HasMany
     {
         return $this->hasMany(PtSession::class);
+    }
+
+    public function discountCode(): BelongsTo
+    {
+        return $this->belongsTo(DiscountCode::class);
     }
 }

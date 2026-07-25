@@ -102,6 +102,12 @@ export default function AdminContractDetail() {
                 <span className="text-white/60">Amount</span>
                 <span className="font-semibold text-white">₦{Number(contract.amount).toLocaleString()}</span>
               </div>
+              {contract.discount_name && (
+                <div className="flex justify-between rounded-3xl bg-[#0c0e13] px-5 py-4">
+                  <span className="text-white/60">Discount</span>
+                  <span className="font-semibold text-emerald-400">{contract.discount_name} ({contract.discount_code?.percentage}%)</span>
+                </div>
+              )}
               <div className="flex justify-between rounded-3xl bg-[#0c0e13] px-5 py-4">
                 <span className="text-white/60">Start Date</span>
                 <span className="font-semibold text-white">{contract.start_date}</span>

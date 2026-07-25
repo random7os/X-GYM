@@ -6,6 +6,7 @@ const navItems = [
   { to: '/admin/payments', label: 'Payments Hub' },
   { to: '/admin/contracts', label: 'Contracts & Export' },
   { to: '/admin/agents', label: 'Sales Agents' },
+  { to: '/admin/discount-codes', label: 'Discount Codes' },
   { to: '/admin/profile', label: 'Profile' },
 ];
 

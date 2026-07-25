@@ -48,7 +48,7 @@ class ContractController extends Controller
 
     public function show(Contract $contract)
     {
-        return response()->json($contract->load(['member', 'payments', 'ptSessions']));
+        return response()->json($contract->load(['member', 'payments', 'ptSessions', 'discountCode']));
     }
 
     public function store(SalesContractRequest $request)
@@ -67,15 +67,25 @@ class ContractController extends Controller
             ]);
         }
 
-        $lastCode = Contract::where('contract_code', 'like', 'XM-%')
-            ->orderByRaw('CAST(SUBSTR(contract_code, 4) AS INTEGER) DESC')
-            ->value('contract_code');
-        $nextNumber = $lastCode ? (int) substr($lastCode, 3) + 1 : 3020;
+        if ($request->contract_code) {
+            $contractCode = $request->contract_code;
+        } else {
+            $prefix = match ($request->contract_type) {
+                'referral' => 'RM',
+                'family' => 'FM',
+                default => 'XM',
+            };
+            $lastCode = Contract::where('contract_code', 'like', $prefix . '-%')
+                ->orderByRaw('CAST(SUBSTR(contract_code, 4) AS INTEGER) DESC')
+                ->value('contract_code');
+            $nextNumber = $lastCode ? (int) substr($lastCode, 3) + 1 : ($prefix === 'XM' ? 3020 : 1000);
+            $contractCode = $prefix . '-' . $nextNumber;
+        }
 
         $contract = Contract::create([
             'member_id' => $member->id,
             'sales_agent_id' => $request->user()->id,
-            'contract_code' => 'XM-' . $nextNumber,
+            'contract_code' => $contractCode,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'membership_type' => $request->membership_type,
@@ -90,6 +100,12 @@ class ContractController extends Controller
                 ? 'Membership renewal pending admin review.'
                 : 'Your contract is pending review by the admin team.',
             'reviewed_at' => null,
+            'discount_code_id' => $request->discount_code_id
+                ? \App\Models\DiscountCode::where('id', $request->discount_code_id)->where('is_active', true)->value('id')
+                : null,
+            'discount_name' => $request->discount_code_id
+                ? \App\Models\DiscountCode::where('id', $request->discount_code_id)->where('is_active', true)->value('name')
+                : null,
         ]);
 
         if ($request->hasFile('receipt')) {

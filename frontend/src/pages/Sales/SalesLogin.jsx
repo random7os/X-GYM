@@ -24,10 +24,10 @@ export default function SalesLogin() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_rgba(255,229,61,0.12),_transparent_45%),_linear-gradient(180deg,_#030405,_#09090f)] px-4 py-12 text-white">
       <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[32px] border border-white/10 bg-[#0c0d11]/90 p-10 shadow-glow backdrop-blur-xl">
-          <p className="text-sm uppercase tracking-[0.35em] text-vital-gold/80">Sales Login</p>
-          <h1 className="mt-4 text-5xl font-black text-white">Login to your sales hub</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70">Enter your credentials to access the contract builder, upload receipts, and track your monthly sales target.</p>
+        <div className="rounded-[32px] border border-white/10 bg-[#0c0d11]/95 p-12 shadow-glow backdrop-blur-xl">
+          <p className="text-xl font-light uppercase tracking-[0.6em] text-vital-gold">X</p>
+          <h1 className="mt-6 text-5xl font-bold text-white tracking-tight">Login to your sales hub</h1>
+          <p className="mt-4 max-w-2xl text-base text-white/50 tracking-wide">Enter your credentials to access the contract builder, upload receipts, and track your monthly sales target.</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               type="button"
@@ -47,10 +47,10 @@ export default function SalesLogin() {
         </div>
 
         <GlassCard>
-          <div className="space-y-6">
-            <div>
-              <p className="text-sm uppercase tracking-[0.35em] text-vital-gold/80">X</p>
-              <h2 className="mt-2 text-3xl font-black text-white">Sales Agent Access</h2>
+          <div className="space-y-8">
+            <div className="space-y-2">
+              <p className="text-lg font-light uppercase tracking-[0.6em] text-vital-gold">Sales</p>
+              <h2 className="text-4xl font-bold text-white tracking-tight">Agent Access</h2>
             </div>
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>

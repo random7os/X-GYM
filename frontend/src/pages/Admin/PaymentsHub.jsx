@@ -128,8 +128,9 @@ export default function PaymentsHub() {
                     }`}
                   >
                     <p className="font-semibold text-white">{contract.contract_code}</p>
-                    <p className="mt-2 text-sm text-white/60">{contract.member.full_name} · ₦{contract.amount.toLocaleString()}</p>
-                  </button>
+                      <p className="mt-2 text-sm text-white/60">{contract.member.full_name} · ₦{contract.amount.toLocaleString()}</p>
+                      {contract.discount_name && <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-emerald-400">{contract.discount_name}</p>}
+                    </button>
                 ))
               )}
             </div>
@@ -158,6 +159,7 @@ export default function PaymentsHub() {
                     <div className="rounded-3xl bg-[#111318] p-4">
                       <p className="text-xs uppercase tracking-[0.25em] text-white/40">Amount</p>
                       <p className="mt-2 text-xl font-semibold text-white">₦{selected.amount.toLocaleString()}</p>
+                      {selected.discount_name && <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-emerald-400">{selected.discount_name}</p>}
                     </div>
                     <div className="rounded-3xl bg-[#111318] p-4">
                       <p className="text-xs uppercase tracking-[0.25em] text-white/40">Agent</p>

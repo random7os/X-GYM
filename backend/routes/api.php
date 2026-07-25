@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Sales\ContractController;
 use App\Http\Controllers\Admin\ContractApprovalController;
 use App\Http\Controllers\Admin\ExportController;
+use App\Http\Controllers\Admin\DiscountCodeController;
 use App\Http\Controllers\NotificationController;
 
 Route::post('auth/login', [AuthController::class, 'login']);
@@ -22,6 +23,7 @@ Route::prefix('sales')->middleware(['auth:sanctum', 'role:sales_agent'])->group(
     Route::get('contracts/{contract}/qr', [ContractController::class, 'qrCode']);
     Route::post('contracts/{contract}/payment', [ContractController::class, 'uploadPayment']);
     Route::get('members/search', [ContractController::class, 'searchMembers']);
+    Route::get('discount-codes/validate', [DiscountCodeController::class, 'validateCode']);
 });
 
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
@@ -36,6 +38,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('agents/{agent}/sales-summary', [ContractApprovalController::class, 'agentSummary']);
     Route::delete('agents/{agent}', [ContractApprovalController::class, 'deleteAgent']);
     Route::get('exports/financial', [ExportController::class, 'financialExport']);
+    Route::get('discount-codes', [DiscountCodeController::class, 'index']);
+    Route::post('discount-codes', [DiscountCodeController::class, 'store']);
+    Route::put('discount-codes/{discountCode}', [DiscountCodeController::class, 'update']);
+    Route::post('discount-codes/{discountCode}/toggle', [DiscountCodeController::class, 'toggle']);
 });
 
 Route::post('notifications/contract-submitted', [NotificationController::class, 'contractSubmitted']);

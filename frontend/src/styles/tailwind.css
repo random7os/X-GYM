@@ -2,16 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: #050608;
+    color: #f7f7f7;
+    font-family: 'Oswald', system-ui, sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  input, select, textarea, button {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  ::selection {
+    background: rgba(255, 229, 61, 0.25);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0c0e13;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2a2d35;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3d4048;
+  }
 }
 
-body {
-  background: #050608;
-  color: #f7f7f7;
-  font-family: 'Inter', 'Poppins', sans-serif;
-}
+@layer components {
+  .glass-panel {
+    @apply rounded-[32px] border border-white/10 bg-[#111318]/80 shadow-glow backdrop-blur-xl;
+  }
 
-input, select, textarea, button {
-  font: inherit;
+  .glass-card {
+    @apply rounded-[32px] border border-white/10 bg-[#0c0e13]/90 backdrop-blur-md;
+  }
+
+  .gold-button {
+    @apply rounded-3xl bg-vital-gold px-6 py-3 text-sm font-semibold uppercase tracking-[0.15em] text-black transition hover:shadow-glow;
+  }
+
+  .ghost-button {
+    @apply rounded-3xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold uppercase tracking-[0.15em] text-white transition hover:bg-white/10;
+  }
 }
